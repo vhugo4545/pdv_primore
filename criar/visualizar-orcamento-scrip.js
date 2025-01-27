@@ -240,7 +240,7 @@ async function salvarCliente(nomeFantasia, razaoSocial, email, codigoIntegracao)
 
     try {
         // Fazer a requisição POST para incluir o cliente
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/clientes/incluirCliente', {
+        const response = await fetch('http://localhost:3000/clientes/incluirCliente', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -279,6 +279,15 @@ function preencherCamposCliente(cliente) {
 
 //Barras de pesquisa e ambientes
 
+// Array com os códigos específicos que você quer filtrar (exemplo)
+const codigosDecoNatural = [
+    "4206528985",  // Arranjo Grande
+    "4206528989", // Arranjo Medio
+    "4206529013", // Jardineiras
+    "4206528993", // Mesa de confidados
+    "4206529009" // cerimonia
+];
+
 // Função para filtrar e exibir os produtos na tabela de pesquisa
 async function filtrarProdutos() {
     const pesquisa = document.getElementById('pesquisaProduto').value.toLowerCase();
@@ -295,27 +304,35 @@ async function filtrarProdutos() {
         divTabelaProdutos.style.display = 'block';
     }
 
-    // Separar a pesquisa em termos usando a barra como delimitador
-    const termosPesquisa = pesquisa.split('/').map(termo => termo.trim());
-
     try {
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/produtos/visualizar');
+        const response = await fetch('http://localhost:3000/produtos/visualizar');
         if (!response.ok) {
             throw new Error('Erro ao buscar os produtos');
         }
 
         const produtos = await response.json();
-        const produtosFiltrados = produtos.filter(produto => {
-            const descricao = produto.descricao ? produto.descricao.toLowerCase() : '';
-            const codigo = produto.codigo ? produto.codigo.toLowerCase() : '';
-            const codigoProduto = produto.codigo_produto ? produto.codigo_produto.toString().toLowerCase() : '';
 
-            // Verifica se todos os termos estão presentes na descrição, código ou código do produto
-            return termosPesquisa.every(termo => 
-                descricao.includes(termo) || codigo.includes(termo) || codigoProduto.includes(termo)
-            );
-        });
+        let produtosFiltrados = [];
 
+        // Se o termo "decoração natural" for digitado, filtra pelos códigos de decoração
+        if (pesquisa.includes('decoração natural')) {
+            produtosFiltrados = produtos.filter(produto => {
+                // Verifica se o código do produto está no array de códigos de decoração natural
+                return codigosDecoNatural.includes(produto.codigo_produto.toString());
+            });
+        } else {
+            // Caso contrário, realiza a pesquisa normal
+            produtosFiltrados = produtos.filter(produto => {
+                const descricao = produto.descricao ? produto.descricao.toLowerCase() : '';
+                const codigo = produto.codigo ? produto.codigo.toLowerCase() : '';
+                const codigoProduto = produto.codigo_produto ? produto.codigo_produto.toString().toLowerCase() : '';
+               
+                // Verifica se qualquer termo da pesquisa está presente na descrição, código ou código do produto
+                return descricao.includes(pesquisa) || codigo.includes(pesquisa) || codigoProduto.includes(pesquisa);
+            });
+        }
+
+        // Adiciona os produtos filtrados à tabela
         produtosFiltrados.forEach(produto => {
             const imagemUrl = produto.imagens && produto.imagens.length > 0 ? produto.imagens[0].url_imagem : '';
             const imagemHtml = imagemUrl ? `<img src="${imagemUrl}" alt="Imagem do Produto" class="produto-imagem" style="cursor: pointer; max-width: 50px;" ">` : '<span>Sem imagem</span>';
@@ -327,8 +344,9 @@ async function filtrarProdutos() {
                 <td class="produto-nome">${produto.descricao}</td>
                 <td>${produto.codigo}</td>
                 <td>${produto.codigo_produto}</td>
-                <td style="white-space: nowrap;">${produto.valor_unitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                <td style="white-space: nowrap;">${produto.valor_unitario}</td>
                 <td><i class="fa fa-eye" style="cursor: pointer;" onclick="verDetalhes('${produto.descr_detalhada}')"></i></td>
+                <td>${produto.unidade}</td>
             `;
             tabelaProdutos.appendChild(row);
         });
@@ -337,6 +355,8 @@ async function filtrarProdutos() {
         console.error('Erro ao buscar produtos:', error);
     }
 }
+
+
 // Função para pesquisar ambientes
 async function pesquisarAmbiente() {
     const pesquisa = document.getElementById('ambienteSelecionado').value.toLowerCase();
@@ -352,7 +372,7 @@ async function pesquisarAmbiente() {
     }
 
     try {
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/ambientes');
+        const response = await fetch('http://localhost:3000/ambientes');
         if (!response.ok) {
             throw new Error('Erro ao buscar os ambientes');
         }
@@ -400,7 +420,7 @@ async function cadastrarAmbiente(nomeAmbiente) {
     }
 
     try {
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/ambientes', {
+        const response = await fetch('http://localhost:3000/ambientes', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -446,7 +466,8 @@ function removerProduto(element, ambiente) {
         alert("Produto removido com sucesso!");
     }
 }
-//Incluir Produto Selecionado
+
+// Função para incluir produtos selecionados
 function incluirProdutosSelecionados() {
     const ambienteSelecionado = document.getElementById('ambienteSelecionado').value;
     
@@ -475,9 +496,58 @@ function incluirProdutosSelecionados() {
         const nomeProduto = row.querySelector('.produto-nome').textContent;
         const codigoProduto = row.querySelector('td:nth-child(4)').textContent;
         const codigoInterno = row.querySelector('td:nth-child(5)').textContent;
+        const unidade = row.querySelector('td:nth-child(8)').textContent;
+
+        console.log( unidade)
+
+        // Definir Quantidades De produtos 
+        let quantidade = 1;  // Valor padrão
+        if (codigoInterno === "4206528989") {
+            quantidade = 2;  // Quantidade específica para o código 4206528989
+        } else if (codigoInterno === "4206528985") {
+            quantidade = 4;  // Quantidade específica para o código 4206528985
+        } else if (codigoInterno === "4206529013") {
+            quantidade  = 1;  // Quantidade específica para o código 4206529013
+        }else if (codigoInterno === "4206528993") {
+            // Realiza o cálculo primeiro
+            let quantidadeCalculada = Math.ceil((document.getElementById('quantidadeConvidados').value * 0.8) / 10) - 1;
+            console.log(quantidadeCalculada);  // Mostra o resultado do cálculo no console
+    
+            // Agora define a quantidade
+            quantidade = quantidadeCalculada;
+        
+            // Continue com o restante da lógica da função
+        }
+        else if (unidade === "1UN" ) {
+            let quantidadeCalculada = document.getElementById('quantidadeConvidados').value;
+            
+            // Verifica se o valor é vazio ou zero e ajusta para 1
+            quantidadeCalculada = (quantidadeCalculada === "" || quantidadeCalculada === "0") ? 1 : quantidadeCalculada;
+        
+            console.log(quantidadeCalculada);  // Mostra o valor ajustado no console
+        
+            // Agora define a quantidade
+            quantidade = quantidadeCalculada;
+        
+            // Continue com o restante da lógica da função
+        }
+
+        else if (unidade === "PA" ) {
+           
+            quantidade = 1;
+        
+            // Continue com o restante da lógica da função
+        }
+        
+        
+        
+
+        
+
+      
 
         // Corrigindo a leitura do valor unitário e formatando corretamente
-        let valorUnitarioText = row.querySelector('td:nth-child(6)').textContent.replace(/[^\d,]/g, '').replace('.', '').replace(',', '.');
+        let valorUnitarioText = row.querySelector('td:nth-child(6)').textContent.replace('.', ',');
         const valorUnitario = parseFloat(valorUnitarioText) || 0;
         const imagemUrl = row.querySelector('img') ? row.querySelector('img').src : '';
 
@@ -489,8 +559,8 @@ function incluirProdutosSelecionados() {
             <td>${codigoProduto}</td>
             <td>${codigoInterno}</td>
             <td><span class="valorUnitario">${valorUnitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></td>
-            <td><input type="number" class="form-control quantidadeProduto" min="1" value="1" onchange="atualizarTodosOsCalculos('${ambienteSelecionado}')"></td>
-            <td><input type="text" class="form-control valorTotal" value="${(valorUnitario).toFixed(2).replace('.', ',')}" onchange="atualizarValorUnitario(this, '${ambienteSelecionado}')"></td>
+            <td><input type="number" class="form-control quantidadeProduto" min="1" value="${quantidade}" onchange="atualizarTodosOsCalculos('${ambienteSelecionado}')"></td>
+            <td><input type="text" class="form-control valorTotal" value="${(valorUnitario * quantidade).toFixed(2).replace('.', ',')}" onchange="atualizarValorUnitario(this, '${ambienteSelecionado}')"></td>
             <td>
                 <i class="fa fa-times" style="cursor: pointer; color: red;" onclick="removerProduto(this, '${ambienteSelecionado}')" title="Remover Produto"></i>
                 <i class="fa fa-question-circle" style="cursor: pointer; color: blue; margin-right: 10px;" onclick="adicionarObservacao(this)" title="Adicionar Observação"></i>
@@ -513,6 +583,145 @@ function incluirProdutosSelecionados() {
 
     atualizarTodosOsCalculos(ambienteSelecionado);
 }
+
+
+
+
+
+// Função para criar uma nova tabela para um ambiente específico
+function criarTabelaAmbiente(ambiente) {
+    // Verifica se o ambiente é válido
+    if (!ambiente || ambiente.trim() === '') {
+        console.error('Erro: Ambiente não fornecido ou inválido.');
+        return;
+    }
+
+    // Verifica se a tabela já existe para evitar duplicação
+    if (document.getElementById(`div-${ambiente}`)) {
+        console.warn(`A tabela para o ambiente "${ambiente}" já existe. Não será criada uma nova.`);
+        return;
+    }
+
+    const tabelasAmbientesDiv = document.getElementById('tabelasAmbientes');
+
+    // Criando o container para a tabela do ambiente
+    const tabelaDiv = document.createElement('div');
+    tabelaDiv.classList.add('mt-4', 'ambiente-container');
+    tabelaDiv.id = `div-${ambiente}`;
+
+    // Preenchendo a estrutura HTML da tabela
+    tabelaDiv.innerHTML = `
+        <h4 class="text-center text-uppercase font-weight-bold">
+            ${ambiente}
+            <button class="btn btn-sm btn-danger" onclick="removerAmbiente('${ambiente}')">Excluir Ambiente</button>
+        </h4>
+        <table class="table table-bordered" id="tabela-${ambiente}">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" onclick="selecionarTodosProdutos(this, 'tabela-${ambiente}')"></th>
+                    <th>Imagem</th>
+                    <th>Nome</th>
+                    <th>Código</th>
+                    <th>Código Interno</th>
+                    <th>Valor Unitário</th>
+                    <th>Quantidade</th>
+                    <th>Valor Total</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Produtos serão adicionados aqui dinamicamente -->
+            </tbody>
+        </table>
+        <div class="total-ambiente-bar" id="total-${ambiente}">Total do Ambiente: R$ 0,00</div>
+    `;
+
+    // Adicionando a nova tabela ao container principal de tabelas
+    tabelasAmbientesDiv.appendChild(tabelaDiv);
+
+    // Tornar a tabela ordenável com jQuery UI Sortable
+    $(`#tabela-${ambiente} tbody`).sortable({
+        placeholder: "ui-state-highlight",  // Estilo visual ao arrastar
+        axis: "y",  // Limitar arraste ao eixo vertical
+        cursor: "move",  // Mudar o cursor enquanto arrasta
+        update: function(event, ui) {
+            // Atualizar o cálculo do ambiente após a ordenação
+            atualizarTodosOsCalculos(ambiente);
+        }
+    }).disableSelection();
+}
+
+//produtos genericos 
+function adicionarOuIncluirProdutoGenerico() {
+    const ambienteSelecionado = document.getElementById('ambienteSelecionado').value;
+
+    if (ambienteSelecionado === '') {
+        alert('Por favor, selecione um ambiente para adicionar produtos.');
+        return;
+    }
+
+    let tabelaAmbiente = document.getElementById(`tabela-${ambienteSelecionado}`);
+    if (!tabelaAmbiente) {
+        criarTabelaAmbiente(ambienteSelecionado);
+        tabelaAmbiente = document.getElementById(`tabela-${ambienteSelecionado}`);
+    }
+
+    // Verifica se algum produto foi selecionado
+    const checkboxes = document.querySelectorAll('.checkbox-selecionar-produto:checked');
+    if (checkboxes.length === 0) {
+        alert('Nenhum produto selecionado.');
+        return;
+    }
+
+    // Adiciona cada produto selecionado à tabela do ambiente
+    checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const nomeProduto = row.querySelector('.produto-nome').textContent;
+        const codigoProduto = row.querySelector('td:nth-child(4)').textContent;
+        const codigoInterno = row.querySelector('td:nth-child(5)').textContent;
+
+        // Corrige a leitura e formatação do valor unitário
+        let valorUnitarioText = row.querySelector('td:nth-child(6)').textContent.replace(/[^\d,]/g, '').replace('.', '').replace(',', '.');
+        const valorUnitario = parseFloat(valorUnitarioText) || 0;
+        const imagemUrl = row.querySelector('img') ? row.querySelector('img').src : '';
+
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td><input type="checkbox" class="checkbox-selecionar-produto"></td>
+            <td>${imagemUrl ? `<img src="${imagemUrl}" alt="Imagem do Produto Selecionado" style="max-width: 50px;">` : 'Sem imagem'}</td>
+            <td>${nomeProduto}</td>
+            <td>${codigoProduto}</td>
+            <td>${codigoInterno}</td>
+            <td><span class="valorUnitario">${valorUnitario}}</span></td>
+            <td><input type="number" class="form-control quantidadeProduto" min="1" value="1" onchange="atualizarTodosOsCalculos('${ambienteSelecionado}')"></td>
+            <td><input type="text" class="form-control valorTotal" value="${(valorUnitario).toFixed(2).replace('.', ',')}" onchange="atualizarValorUnitario(this, '${ambienteSelecionado}')"></td>
+            <td>
+                <i class="fa fa-times" style="cursor: pointer; color: red;" onclick="removerProduto(this, '${ambienteSelecionado}')" title="Remover Produto"></i>
+                <i class="fa fa-question-circle" style="cursor: pointer; color: blue; margin-right: 10px;" onclick="adicionarObservacao(this)" title="Adicionar Observação"></i>
+            </td>
+        `;
+
+        tabelaAmbiente.querySelector('tbody').appendChild(newRow);
+    });
+
+    // Tornar a tabela ordenável e atualizável
+    $(`#tabela-${ambienteSelecionado} tbody`).sortable({
+        placeholder: "ui-state-highlight",
+        axis: "y",
+        cursor: "move",
+        update: function(event, ui) {
+            atualizarTodosOsCalculos(ambienteSelecionado);
+        }
+    }).disableSelection();
+
+    // Atualiza os cálculos totais para o ambiente selecionado
+    atualizarTodosOsCalculos(ambienteSelecionado);
+
+    // Fechar o modal de produtos
+    const produtoGenericoModal = bootstrap.Modal.getInstance(document.getElementById('produtoGenericoModal'));
+    produtoGenericoModal.hide();
+}
+
 // Função para preencher os produtos agrupados por ambiente no formulário e tornar as tabelas ordenáveis
 function preencherProdutosNosAmbientes(produtos) {
     const tabelasAmbientesDiv = document.getElementById('tabelasAmbientes');
@@ -594,138 +803,7 @@ function preencherProdutosNosAmbientes(produtos) {
     // Atualizar o total geral
     atualizarTotalGeral();
 }
-// Função para criar uma nova tabela para um ambiente específico
-function criarTabelaAmbiente(ambiente) {
-    // Verifica se o ambiente é válido
-    if (!ambiente || ambiente.trim() === '') {
-        console.error('Erro: Ambiente não fornecido ou inválido.');
-        return;
-    }
 
-    // Verifica se a tabela já existe para evitar duplicação
-    if (document.getElementById(`div-${ambiente}`)) {
-        console.warn(`A tabela para o ambiente "${ambiente}" já existe. Não será criada uma nova.`);
-        return;
-    }
-
-    const tabelasAmbientesDiv = document.getElementById('tabelasAmbientes');
-
-    // Criando o container para a tabela do ambiente
-    const tabelaDiv = document.createElement('div');
-    tabelaDiv.classList.add('mt-4', 'ambiente-container');
-    tabelaDiv.id = `div-${ambiente}`;
-
-    // Preenchendo a estrutura HTML da tabela
-    tabelaDiv.innerHTML = `
-        <h4 class="text-center text-uppercase font-weight-bold">
-            ${ambiente}
-            <button class="btn btn-sm btn-danger" onclick="removerAmbiente('${ambiente}')">Excluir Ambiente</button>
-        </h4>
-        <table class="table table-bordered" id="tabela-${ambiente}">
-            <thead>
-                <tr>
-                    <th><input type="checkbox" onclick="selecionarTodosProdutos(this, 'tabela-${ambiente}')"></th>
-                    <th>Imagem</th>
-                    <th>Nome</th>
-                    <th>Código</th>
-                    <th>Código Interno</th>
-                    <th>Valor Unitário</th>
-                    <th>Quantidade</th>
-                    <th>Valor Total</th>
-                    <th>Ação</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Produtos serão adicionados aqui dinamicamente -->
-            </tbody>
-        </table>
-        <div class="total-ambiente-bar" id="total-${ambiente}">Total do Ambiente: R$ 0,00</div>
-    `;
-
-    // Adicionando a nova tabela ao container principal de tabelas
-    tabelasAmbientesDiv.appendChild(tabelaDiv);
-
-    // Tornar a tabela ordenável com jQuery UI Sortable
-    $(`#tabela-${ambiente} tbody`).sortable({
-        placeholder: "ui-state-highlight",  // Estilo visual ao arrastar
-        axis: "y",  // Limitar arraste ao eixo vertical
-        cursor: "move",  // Mudar o cursor enquanto arrasta
-        update: function(event, ui) {
-            // Atualizar o cálculo do ambiente após a ordenação
-            atualizarTodosOsCalculos(ambiente);
-        }
-    }).disableSelection();
-}
-//produtos genericos 
-function adicionarOuIncluirProdutoGenerico() {
-    const ambienteSelecionado = document.getElementById('ambienteSelecionado').value;
-
-    if (ambienteSelecionado === '') {
-        alert('Por favor, selecione um ambiente para adicionar produtos.');
-        return;
-    }
-
-    let tabelaAmbiente = document.getElementById(`tabela-${ambienteSelecionado}`);
-    if (!tabelaAmbiente) {
-        criarTabelaAmbiente(ambienteSelecionado);
-        tabelaAmbiente = document.getElementById(`tabela-${ambienteSelecionado}`);
-    }
-
-    // Verifica se algum produto foi selecionado
-    const checkboxes = document.querySelectorAll('.checkbox-selecionar-produto:checked');
-    if (checkboxes.length === 0) {
-        alert('Nenhum produto selecionado.');
-        return;
-    }
-
-    // Adiciona cada produto selecionado à tabela do ambiente
-    checkboxes.forEach(checkbox => {
-        const row = checkbox.closest('tr');
-        const nomeProduto = row.querySelector('.produto-nome').textContent;
-        const codigoProduto = row.querySelector('td:nth-child(4)').textContent;
-        const codigoInterno = row.querySelector('td:nth-child(5)').textContent;
-
-        // Corrige a leitura e formatação do valor unitário
-        let valorUnitarioText = row.querySelector('td:nth-child(6)').textContent.replace(/[^\d,]/g, '').replace('.', '').replace(',', '.');
-        const valorUnitario = parseFloat(valorUnitarioText) || 0;
-        const imagemUrl = row.querySelector('img') ? row.querySelector('img').src : '';
-
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td><input type="checkbox" class="checkbox-selecionar-produto"></td>
-            <td>${imagemUrl ? `<img src="${imagemUrl}" alt="Imagem do Produto Selecionado" style="max-width: 50px;">` : 'Sem imagem'}</td>
-            <td>${nomeProduto}</td>
-            <td>${codigoProduto}</td>
-            <td>${codigoInterno}</td>
-            <td><span class="valorUnitario">${valorUnitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></td>
-            <td><input type="number" class="form-control quantidadeProduto" min="1" value="1" onchange="atualizarTodosOsCalculos('${ambienteSelecionado}')"></td>
-            <td><input type="text" class="form-control valorTotal" value="${(valorUnitario).toFixed(2).replace('.', ',')}" onchange="atualizarValorUnitario(this, '${ambienteSelecionado}')"></td>
-            <td>
-                <i class="fa fa-times" style="cursor: pointer; color: red;" onclick="removerProduto(this, '${ambienteSelecionado}')" title="Remover Produto"></i>
-                <i class="fa fa-question-circle" style="cursor: pointer; color: blue; margin-right: 10px;" onclick="adicionarObservacao(this)" title="Adicionar Observação"></i>
-            </td>
-        `;
-
-        tabelaAmbiente.querySelector('tbody').appendChild(newRow);
-    });
-
-    // Tornar a tabela ordenável e atualizável
-    $(`#tabela-${ambienteSelecionado} tbody`).sortable({
-        placeholder: "ui-state-highlight",
-        axis: "y",
-        cursor: "move",
-        update: function(event, ui) {
-            atualizarTodosOsCalculos(ambienteSelecionado);
-        }
-    }).disableSelection();
-
-    // Atualiza os cálculos totais para o ambiente selecionado
-    atualizarTodosOsCalculos(ambienteSelecionado);
-
-    // Fechar o modal de produtos
-    const produtoGenericoModal = bootstrap.Modal.getInstance(document.getElementById('produtoGenericoModal'));
-    produtoGenericoModal.hide();
-}
 // Função para remover produto e atualizar os cálculos
 function removerProduto(element, ambienteSelecionado) {
     const row = element.closest('tr');
@@ -1202,7 +1280,7 @@ async function atualizarProposta() {
         console.log('Enviando pedido para salvar:', JSON.stringify(pedido, null, 2)); // Log detalhado para ver o pedido sendo enviado
 
         // Fazer a requisição de atualização do pedido
-        const response = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const response = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1333,7 +1411,7 @@ async function gerarEEnviarProposta() {
     try {
         console.log(proposta);
         alert("Pedido sendo registrado na Omie, aguarde alguns segundos!");
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/omie/incluir-pedido', {
+        const response = await fetch('http://localhost:3000/omie/incluir-pedido', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1396,7 +1474,7 @@ async function salvarCliente() {
     try {
         console.log(clienteData)
         // Fazer a requisição POST para incluir o cliente
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/clientes/incluirCliente', {
+        const response = await fetch('http://localhost:3000/clientes/incluirCliente', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1447,7 +1525,7 @@ function gerarCodigoClienteIntegracao() {
 // Função para buscar clientes
 async function buscarClientes() {
     try {
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/clientes/visualizar');
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/produtos/visualizar');
         if (!response.ok) {
             throw new Error('Erro ao buscar os clientes');
         }
@@ -1488,7 +1566,7 @@ async function buscarClientes() {
 async function atualizarClientes() {
     try {
         alert('Sua lista de clientes esta sendo atualizada');
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/clientes/atualizar', {
+        const response = await fetch('http://localhost:3000/clientes/atualizar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1511,7 +1589,7 @@ async function atualizarClientes() {
 async function atualizacaoDeProdutos() {
     try {
         alert("Atualização de produtos Iniciada!")
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/produtos/atualizar', {
+        const response = await fetch('http://localhost:3000/produtos/atualizar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1535,36 +1613,49 @@ async function atualizacaoDeProdutos() {
 
 async function criarProposta() {
     // Obter os dados dos campos
-    const nome = document.getElementById('nome').value.trim();
-    const idClienteOmie = document.getElementById('idClienteOmie').value.trim();
-    const telefone = document.getElementById('telefone').value.trim();
-    const tipoEntrega = document.getElementById('tipoEntrega').value.trim() || null;
-    const tipoPagamento = document.getElementById('tipoPagamento').value.trim() || null;
-    const vendedor = document.getElementById('selectVendedor').value.trim();
+    const nome = document.getElementById('contratante').value.trim();
+    const emailDocumentacaoBoleto = document.getElementById('email_documentacao_boleto').value.trim();
+    const contato = document.getElementById('contato').value.trim();
+    const dataEvento = document.getElementById('data_evento').value.trim();
+    const numeroConvidados = document.getElementById('quantidadeConvidados').value.trim();
+    const horarioEvento = document.getElementById('horario_evento').value.trim();
+    const valorTotalContrato = parseFloat(document.getElementById('valor_total_contrato').value.trim()) || 0;
+    const cpf = document.getElementById('cpf').value.trim();
+    const estadoCivil = document.getElementById('estado_civil').value.trim();
+    const profissao = document.getElementById('profissao').value.trim();
+    const bairro = document.getElementById('bairro').value.trim();
+    const cidade = document.getElementById('cidade').value.trim();
+    const uf = document.getElementById('uf').value.trim();
+    const cep = document.getElementById('cep').value.trim();
+    const valorEntrada = parseFloat(document.getElementById('valor_entrada').value.trim()) || 0;
+    const descritivoPagamento = document.getElementById('descritivo_pagamento').value.trim();
 
     // Validações dos campos obrigatórios
-    if (!nome || !idClienteOmie || !telefone || !vendedor) {
+    if (!nome || !emailDocumentacaoBoleto || !contato || !dataEvento || !numeroConvidados || !horarioEvento || !valorTotalContrato || !cpf || !estadoCivil || !profissao || !bairro || !cidade || !uf || !cep || !valorEntrada || !descritivoPagamento) {
         let missingFields = [];
 
         if (!nome) missingFields.push("Nome");
-        if (!idClienteOmie) missingFields.push("Selecione um cliente válido");
-        if (!telefone) missingFields.push("Telefone");
-        if (!vendedor) missingFields.push("Vendedor");
+        if (!emailDocumentacaoBoleto) missingFields.push("E-mail");
+        if (!contato) missingFields.push("Contato");
+        if (!dataEvento) missingFields.push("Data do Evento");
+        if (!numeroConvidados) missingFields.push("Número de Convidados");
+        if (!horarioEvento) missingFields.push("Horário do Evento");
+        if (!valorTotalContrato) missingFields.push("Valor Total do Contrato");
+        if (!cpf) missingFields.push("CPF");
+        if (!estadoCivil) missingFields.push("Estado Civil");
+        if (!profissao) missingFields.push("Profissão");
+        if (!bairro) missingFields.push("Bairro");
+        if (!cidade) missingFields.push("Cidade");
+        if (!uf) missingFields.push("UF");
+        if (!cep) missingFields.push("CEP");
+        if (!valorEntrada) missingFields.push("Valor da Entrada");
+        if (!descritivoPagamento) missingFields.push("Descritivo do Pagamento");
 
         alert(`Por favor, preencha os seguintes campos obrigatórios: ${missingFields.join(', ')}`);
         return;
     }
 
-    // Coletar as demais informações do orçamento
-    const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
-    const endereco = document.getElementById('endereco').value.trim();
-    const numeroComplemento = document.getElementById('numeroComplemento').value.trim();
-    const agenteArquiteto = document.getElementById('agenteArquiteto').value.trim();
-    const valorFrete = parseFloat(document.getElementById('valorFrete').value.trim()) || 0;
-    const desconto = parseFloat(document.getElementById('desconto').value.trim()) || 0;
-    const dataEntrega = document.getElementById('dataEntrega').value;
-
-    // Obter todos os produtos e ambientes
+    // Coletar os produtos (verificar se a função já coleta corretamente)
     const produtos = [];
     document.querySelectorAll("#tabelasAmbientes .ambiente-container").forEach(container => {
         const ambiente = container.querySelector("h4").innerText.trim().replace("Excluir Ambiente", "").trim();
@@ -1603,23 +1694,26 @@ async function criarProposta() {
     const pedido = {
         cliente: {
             nome,
-            cpfCnpj,
-            endereco,
-            numeroComplemento,
-            telefone,
+            emailDocumentacaoBoleto,
+            contato,
+            cpf,
+            estadoCivil,
+            profissao,
+            bairro,
+            cidade,
+            uf,
+            cep
         },
         informacoesOrcamento: {
-            vendedor,
-            agenteArquiteto,
-            transportadora: tipoEntrega === 'acropoluz' ? 'Acropoluz' : 'Cliente',
-            tipoEntrega,
-            valorFrete,
-            tipoPagamento,
-            desconto,
-            dataEntrega,
+            valorTotalContrato,
+            valorEntrada,
+            descritivoPagamento,
+            tipoPagamento: document.getElementById('tipoPagamento').value.trim() || null,
+            dataEvento,
+            horarioEvento,
+            numeroConvidados
         },
         produtos,
-        codigoClienteOmie: idClienteOmie,
         status: 'Aberto',
     };
 
@@ -1627,14 +1721,11 @@ async function criarProposta() {
 
     // Obter o token do armazenamento local
     const token = localStorage.getItem('authToken');
-    if (!token) {
-        alert('Erro: Token de autenticação não encontrado. Faça login novamente.');
-        return;
-    }
+ 
 
     // Fazer a requisição POST para criar o pedido
     try {
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/criar', {
+        const response = await fetch('http://localhost:3000/pedido/criar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1657,6 +1748,7 @@ async function criarProposta() {
         alert('Erro ao se conectar ao servidor. Tente novamente mais tarde.');
     }
 }
+
 //atualizar status de efetivação
 async function atualizarStatusParaEfetivado() {
     // Obter o ID do pedido da URL
@@ -1683,7 +1775,7 @@ async function atualizarStatusParaEfetivado() {
         };
 
         // Fazer uma requisição GET para obter o pedido existente
-        const responseGet = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const responseGet = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'GET',
             headers: headers
         });
@@ -1699,7 +1791,7 @@ async function atualizarStatusParaEfetivado() {
         pedido.status = 'Efetivado';
 
         // Fazer a requisição de atualização do pedido
-        const responsePut = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const responsePut = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'PUT',
             headers: headers,
             body: JSON.stringify(pedido)
@@ -1748,7 +1840,7 @@ async function atualizarStatusParaPerdido() {
         }
 
         // Fazer uma requisição GET para obter o pedido existente
-        const responseGet = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const responseGet = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1767,7 +1859,7 @@ async function atualizarStatusParaPerdido() {
         pedido.status = 'Perdido';
 
         // Fazer a requisição de atualização do pedido
-        const responsePut = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const responsePut = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1963,10 +2055,10 @@ function gerarPaginaOrcamento() {
             <div class="container my-5">
                 <div class="d-flex align-items-start">
                     <div>
-                        <p class="mb-1"><strong> Acrópoluz Soluções em Iluminação</strong></p>
+                        <p class="mb-1"><strong>PRIMORE INTERMEDIACAO DE NEGOCIOS LTDA</strong></p>
                         <p class="mb-1">Endereço: Av. Portugal, 4370 - Itapoã, Belo Horizonte - MG, 31270-705</p>
                         <p class="mb-1">Telefone: (31) 3448-2500</p>
-                        <p class="mb-1">Email: contato@acropoluz.com.br</p>
+                        <p class="mb-1">Email: contato@Grupo Primore.com.br</p>
                         <p class="mb-1">CNPJ: 48.008.794/0001-66</p>
                         <p class="mb-1">Inscrição estadual: 44448850048</p>
                     </div>
@@ -2191,7 +2283,7 @@ const novaPaginaHtml = `
                     <p class="mb-1"><strong>Acrópoluz Soluções em Iluminação</strong></p>
                     <p class="mb-1">Endereço: Av. Portugal, 4370 - Itapoã, Belo Horizonte - MG, 31270-705</p>
                     <p class="mb-1">Telefone: (31) 3448-2500</p>
-                    <p class="mb-1">Email: contato@acropoluz.com.br</p>
+                    <p class="mb-1">Email: contato@Grupo Primore.com.br</p>
                     <p class="mb-1">Inscrição estadual: 44448850048</p>
                 </div>
             </div>

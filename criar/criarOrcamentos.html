@@ -94,7 +94,7 @@
     <!-- Menu de navegação -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Acropoluz</a>
+            <a class="navbar-brand" href="#">Grupo Primore</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -115,12 +115,12 @@
     <!-- Formulário de Novo Orçamento -->
     <div class="container my-5" id="orcamentoContainer">
         <div class="d-flex align-items-start">
-            <img src="../logo.jpg" alt="logo. Orçamento" class="img-fluid me-3" style="width: 150px; height: 150px; object-fit: contain;">
+            <img src="../logo.jpeg" alt="logo. Orçamento" class="img-fluid me-3" style="width: 150px; height: 150px; object-fit: contain;">
             <div>
-              <p class="mb-1"><strong> Acrópoluz Soluções em Iluminação</strong></p>
+              <p class="mb-1"><strong>PRIMORE INTERMEDIACAO DE NEGOCIOS LTDA</strong></p>
                 <p class="mb-1">Endereço: Av. Portugal, 4370 - Itapoã, Belo Horizonte - MG, 31270-705</p>
                 <p class="mb-1">Telefone: (31) 3448-2500</p>
-                <p class="mb-1">Email: contato@acropoluz.com.br</p>
+                <p class="mb-1">Email: contato@Grupo Primore.com.br</p>
                 <p class="mb-1">CNPJ: 48.008.794/0001-66</p>
                 <p class="mb-1">Inscrição estadual: 44448850048</p>
                 
@@ -174,120 +174,125 @@
         <!-- Formulário Principal -->
         <form id="novoOrcamentoForm">
             <div class="row">
+                <!-- Coluna 1 -->
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label for="nome" class="form-label">Nome ( Nome Fantasia )</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="nome" placeholder="Pesquisar ou adicionar cliente" required>
-                            <button class="btn btn-outline-secondary" type="button" onclick="buscarClientes()">
-                                <i class="fa fa-search"></i>
-                            </button>
-                            <button class="btn btn-outline-secondary" type="button" onclick="atualizarClientes()">
-                                <i class="fa fa-refresh"></i>
-                            </button>
-                            <button class="btn btn-outline-secondary" type="button" onclick="cadastrarNovoCliente()">
-                                <i class="fa fa-plus"></i>
-                            </button>
-                        </div>
-                        <div id="clienteSuggestions" class="lista-autocomplete" style="position: absolute; border: 1px solid #ddd; background: white; display: none;"></div>
+                        <label for="contratante" class="form-label">Nome (Contratante)</label>
+                        <input type="text" class="form-control" id="contratante" placeholder="Nome do contratante"
+                            required>
                     </div>
                     <div class="mb-3">
-                        <label for="cpfCnpj" class="form-label">CPF/CNPJ</label>
-                        <input type="text" class="form-control" id="cpfCnpj" placeholder="Digite o CPF ou CNPJ" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="endereco" class="form-label">Endereço</label>
-                        <input type="text" class="form-control" id="endereco" placeholder="Digite o endereço" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="idClienteOmie" class="form-label">ID Cliente Omie</label>
-                        <input type="text" class="form-control" id="idClienteOmie" placeholder="ID do Cliente Omie" readonly>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label for="numeroComplemento" class="form-label">Número/Complemento</label>
-                        <input type="text" class="form-control" id="numeroComplemento" placeholder="Número e complemento">
-                    </div>
-                    <div class="mb-3">
-                        <label for="numeroComplemento" class="form-label">Endereco de entrega</label>
-                        <input type="text" class="form-control" id="numeroComplemento" placeholder="Número e complemento">
-                    </div>
-                    <div class="mb-3">
-                        <label for="telefone" class="form-label">Telefone</label>
-                        <input type="text" class="form-control" id="telefone" placeholder="Digite o telefone" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="tipoEntrega" class="form-label">Tipo de Entrega</label>
-                        <select class="form-control" id="tipoEntrega">
-                            <option value="">Selecione o tipo de entrega</option>
-                            <option value="cliente">Por conta do cliente</option>
-                            <option value="acropoluz">Por conta da Acropoluz</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="valorFrete" class="form-label">Valor do Frete</label>
-                        <input type="text" class="form-control" id="valorFrete" placeholder="Digite o valor do frete">
-                    </div>
-                    
-                      
-                    
-                </div>
-        
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label for="agenteArquiteto" class="form-label">Agente/Arquiteto</label>
-                        <input type="text" class="form-control" id="agenteArquiteto" placeholder="Agente ou Arquiteto">
-                    </div>
-                  
-                    <div class="mb-3">
-                        <label for="dataEntrega" class="form-label">Data de Previsão de Entrega</label>
-                        <input type="date" class="form-control" id="dataEntrega" required>
-                    </div>
-        
-                    <div class="mb-3">
-                        <label for="selectVendedor" class="form-label">Selecionar Vendedor</label>
-                        <select class="form-control" id="selectVendedor">
-                            <option value="">Selecione um vendedor</option>
-                            <option value="cicero magalhaes">Cícero Magalhães</option>
-                            <option value="daniela turchetti c magalhaes">Daniela Turchetti C Magalhaes</option>
-                            <option value="pamella fernanda porto matias">Pâmella Fernanda Porto Matias</option>
-                            <option value="roberta aparecida venancio carvalho">Roberta Aparecida Venâncio Carvalho</option>
-                            <option value="valeria sousa maciel">Valéria Sousa Maciel</option>
-                            <option value="scarlleth fernandes">Scarlleth Fernandes</option>
-                            <option value="isabella david">Isabella David</option>
-                            <option value="roberto ramos paco">Roberto Ramos Pacó</option>
-                            <option value="marcelo versiani">Marcelo Versiani</option>
-                            <option value="nayene karen lemos carvalho">Nayene Karen Lemos Carvalho</option>
-                            <option value="paulo leite">Paulo Leite</option>
-                            <option value="cecilia corgosinho">Cecília Corgosinho</option>
-                            <option value="ana paula felix">Ana Paula Felix</option>
-                            <option value="gabriel vinícius do carmo">Gabriel Vinícius do Carmo</option>
-                            
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="tipoPagamento" class="form-label">Tipo de Pagamento</label>
-                        <select class="form-control" id="tipoPagamento">
-                            <option value="">Selecione o tipo de pagamento</option>
-                            <option value="pix">Pix</option>
-                            <option value="dinheiro">Dinheiro</option>
-                            <option value="cartaoDebito">Cartão de Débito</option>
-                            <option value="cartaoCredito1x">Cartão Crédito 1x</option>
-                            <option value="cartaoCreditoParcelado">Cartão Crédito Parcelado</option>
-                            <option value="boleto">Boleto</option>
-                            <option value="pixBoleto">Pix e Boleto (Pagamento em 2 formas)</option>
-                            <option value="pixCartao">Pix e Cartão (Pagamento em 2 formas)</option>
-                        </select>
+                        <label for="email_documentacao_boleto" class="form-label">E-mail para Documentação e
+                            Boleto</label>
+                        <input type="email" class="form-control" id="email_documentacao_boleto"
+                            placeholder="Digite o e-mail" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="desconto" class="form-label">Desconto (%):</label>
-                        <input type="number"  class="form-control"id="desconto" value="0" min="0" max="100" onchange="validarDesconto()">
+                        <label for="contato" class="form-label">Contato</label>
+                        <input type="text" class="form-control" id="contato" placeholder="Digite o número de contato"
+                            required>
                     </div>
-                  
+                    <div class="mb-3">
+                        <label for="data_evento" class="form-label">Data e Dia do Evento</label>
+                        <input type="date" class="form-control" id="data_evento" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="numero_convidados" class="form-label">Número de Convidados</label>
+                        <input type="number" class="form-control" id="quantidadeConvidados"
+                            placeholder="Número de convidados" required>
+                    </div>
+                </div>
+
+                <!-- Coluna 2 -->
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="horario_evento" class="form-label">Horário do Evento</label>
+                        <input type="text" class="form-control" id="horario_evento" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="valor_total_contrato" class="form-label">Valor Total do Contrato</label>
+                        <input type="number" class="form-control" id="valor_total_contrato"
+                            placeholder="Valor total do contrato" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cpf" class="form-label">CPF</label>
+                        <input type="text" class="form-control" id="cpf" placeholder="Digite o CPF" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="estado_civil" class="form-label">Estado Civil</label>
+                        <input type="text" class="form-control" id="estado_civil" placeholder="Digite o estado civil"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="profissao" class="form-label">Profissão</label>
+                        <input type="text" class="form-control" id="profissao" placeholder="Digite a profissão"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="desconto" class="form-label">Desconto</label>
+                        <input type="number" class="form-control" id="desconto" placeholder="Digite o valor do desconto" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipoPagamento" class="form-label">Tipo de Pagamento</label>
+                        <select class="form-control" id="tipoPagamento" required>
+                            <option value="padrão">Padrão</option>
+                            <option value="cartaoAVista">Cartão à Vista</option>
+                        </select>
+                    </div>
+                    
+                    
+                </div>
+
+                <!-- Coluna 3 -->
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="bairro" class="form-label">Bairro</label>
+                        <input type="text" class="form-control" id="bairro" placeholder="Digite o bairro" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cidade" class="form-label">Cidade</label>
+                        <input type="text" class="form-control" id="cidade" placeholder="Digite a cidade" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="uf" class="form-label">UF</label>
+                        <input type="text" class="form-control" id="uf" placeholder="Digite a UF" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cep" class="form-label">CEP</label>
+                        <input type="text" class="form-control" id="cep" placeholder="Digite o CEP" required>
+                    </div>
+
                 </div>
             </div>
+
+            <!-- Separador de Divs com hr -->
+            <hr>
+
+            <!-- Segunda Div -->
+          
+
+            <!-- Separador de Divs com hr -->
+            <hr>
+
+            <!-- Terceira Div -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="valor_entrada" class="form-label">Valor da Entrada</label>
+                        <input type="number" class="form-control" id="valor_entrada" placeholder="Valor da entrada"
+                            required>
+                    </div>
+
+                </div>
+                <div class="mb-3">
+                    <label for="descritivo_pagamento" class="form-label">Descritivo do Pagamento</label>
+                    <textarea class="form-control" id="descritivo_pagamento" rows="3" placeholder="Descreva o pagamento"
+                        required></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Salvar</button>
         </form>
 
 
@@ -296,9 +301,15 @@
  <div class="row align-items-center mt-5">
     <div class="col-md-5">
         <label for="ambienteSelecionado" class="form-label">Escolha o Ambiente</label>
-        <input type="text" class="form-control" id="ambienteSelecionado" placeholder="Digite o ambiente" onkeyup="pesquisarAmbiente()">
-        <div id="ambienteSuggestions" class="lista-autocomplete" style="position: absolute; border: 1px solid #ddd; background: white; display: none;"></div>
+        <select class="form-control" id="ambienteSelecionado">
+            <option value="">Selecione o ambiente</option>
+            <option value="salão">Salão</option>
+            <option value="buffet">Buffet</option>
+            <option value="decoração">Decoração</option>
+            <option value="opcionais">Opcionais</option>
+        </select>
     </div>
+    
     <div class="col-md-7">
         
         <label for="pesquisaProduto" class="form-label">Pesquisar Produto</label>
@@ -313,7 +324,6 @@
 </div>
 
 <div class="mt-3">
-    <button class="btn btn-success" data-bs-toggle="modal"  onclick="abrirModal()">Incluir Produto Genérico</button>
     <button id="btn-incluir-selecionados" class="btn btn-success" onclick="incluirProdutosSelecionados()">Incluir Produtos Selecionados</button>
     <button id="btnRemoverSelecionados" class="btn btn-danger">Remover Produtos Selecionados</button>
 
@@ -331,6 +341,7 @@
                 <th>Código Interno</th>
                 <th>Valor</th>
                 <th>Detalhes</th>
+                <th>Unidade</th>
             </tr>
         </thead>
         <tbody id="tabelaProdutos">

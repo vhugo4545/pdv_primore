@@ -236,7 +236,7 @@ function adicionarProduto() {
              <td><textarea class="form-control" rows="3" cols="30"></textarea></td>
             <td>
                 <i class="fa fa-times" style="cursor: pointer; color: red;" onclick="removerProduto(this, '${ambienteSelecionado}')" title="Remover Produto"></i>
-                <i class="fa fa-question-circle" style="cursor: pointer; color: blue; margin-right: 10px;" onclick="adicionarObservacao(this)" title="Adicionar Observação"></i>
+              
             </td>
         `;
 
@@ -260,7 +260,7 @@ async function salvarCliente(nomeFantasia, razaoSocial, email, codigoIntegracao)
 
     try {
         // Fazer a requisição POST para incluir o cliente
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/clientes/incluirCliente', {
+        const response = await fetch('http://localhost:3000/clientes/incluirCliente', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -289,10 +289,9 @@ async function salvarCliente(nomeFantasia, razaoSocial, email, codigoIntegracao)
 // Função para preencher os campos do formulário com os dados do cliente
 function preencherCamposCliente(cliente) {
     console.log(cliente)
-    document.getElementById('cpfCnpj').value = cliente.cnpj_cpf || "";
+
     document.getElementById('nome').value = cliente.razao_social||  cliente.label;
-    document.getElementById('endereco').value = cliente.endereco || '';
-    document.getElementById('telefone').value = cliente.telefone ?? cliente.telefone2_numero ?? '';
+    document.getElementById('contratante').value = cliente.razao_social||  cliente.label;
     document.getElementById('idClienteOmie').value = cliente.value || '';
 }
 
@@ -320,7 +319,7 @@ async function filtrarProdutos() {
     const termosPesquisa = pesquisa.split('/').map(termo => termo.trim());
 
     try {
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/produtos/visualizar');
+        const response = await fetch('http://localhost:3000/produtos/visualizar');
         if (!response.ok) {
             throw new Error('Erro ao buscar os produtos');
         }
@@ -358,9 +357,8 @@ async function filtrarProdutos() {
         console.error('Erro ao buscar produtos:', error);
     }
 }
-// Função para pesquisar ambientes
 async function pesquisarAmbiente() {
-    const pesquisa = document.getElementById('ambienteSelecionado').value.toLowerCase();
+    const pesquisa = document.getElementById('ambienteSelecionado').value.toLowerCase().trim();
     const ambienteSuggestions = document.getElementById('ambienteSuggestions');
 
     ambienteSuggestions.innerHTML = '';
@@ -373,16 +371,31 @@ async function pesquisarAmbiente() {
     }
 
     try {
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/ambientes');
+        const response = await fetch('http://localhost:3000/ambientes');
         if (!response.ok) {
             throw new Error('Erro ao buscar os ambientes');
         }
 
         const ambientes = await response.json();
-        const ambientesFiltrados = ambientes.filter(ambiente =>
+
+        // Normalizar os nomes dos ambientes (remover espaços e converter para minúsculas)
+        const ambientesNormalizados = ambientes.map(ambiente => ({
+            ...ambiente,
+            nome: ambiente.nome.trim()
+        }));
+
+        // Remover duplicatas
+        const ambientesSemDuplicatas = Array.from(
+            new Map(ambientesNormalizados.map(ambiente => [ambiente.nome.toLowerCase(), ambiente]))
+            .values()
+        );
+
+        // Filtrar os ambientes pela pesquisa
+        const ambientesFiltrados = ambientesSemDuplicatas.filter(ambiente =>
             ambiente.nome.toLowerCase().includes(pesquisa)
         );
 
+        // Adicionar ao autocomplete
         ambientesFiltrados.forEach(ambiente => {
             const div = document.createElement('div');
             div.classList.add('item-autocomplete');
@@ -413,6 +426,9 @@ async function pesquisarAmbiente() {
 }
 
 
+
+
+
 // Função para cadastrar um novo ambiente
 async function cadastrarAmbiente(nomeAmbiente) {
     // Exibir uma confirmação para o usuário
@@ -424,7 +440,7 @@ async function cadastrarAmbiente(nomeAmbiente) {
     }
 
     try {
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/ambientes', {
+        const response = await fetch('http://localhost:3000/ambientes', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -547,13 +563,12 @@ function preencherProdutosNosAmbientes(produtos) {
 
     // Agrupar produtos por ambiente
     produtos.forEach(produto => {
-        if (!ambientesMap[produto.ambiente]) {
-            ambientesMap[produto.ambiente] = [];
+        const ambienteKey = produto.ambiente.replace(/\W/g, '_'); // Substituir caracteres não alfanuméricos
+        if (!ambientesMap[ambienteKey]) {
+            ambientesMap[ambienteKey] = [];
         }
-        ambientesMap[produto.ambiente].push(produto);
+        ambientesMap[ambienteKey].push(produto);
     });
-
-   
 
     // Criar tabelas para cada ambiente
     Object.keys(ambientesMap).forEach(ambiente => {
@@ -564,7 +579,7 @@ function preencherProdutosNosAmbientes(produtos) {
         let totalAmbiente = 0;
         ambienteDiv.innerHTML = `
             <h4 class="text-center text-uppercase" style="font-weight: bold;">
-                ${ambiente}
+                ${ambiente.replace(/_/g, ' ')}
                 <button class="btn btn-sm btn-danger" onclick="removerAmbiente('${ambiente}')">Excluir Ambiente</button>
             </h4>
             <table class="table table-bordered sortable-table" id="tabela-${ambiente}" data-sort-order="asc">
@@ -600,7 +615,7 @@ function preencherProdutosNosAmbientes(produtos) {
                                 <td style="white-space: nowrap;"><input type="text" class="form-control valorTotal" value="${valorTotal.toFixed(2).replace('.', ',')}" onchange="atualizarValorUnitario(this, '${ambiente}')"></td>
                                 <td><textarea class="form-control" rows="3" cols="30">${produto.observacao || ''}</textarea></td>
                                 <td>
-                                    <i class="fa fa-question-circle" style="cursor: pointer; color: blue; margin-right: 10px;" onclick="adicionarObservacao(this)" title="Adicionar Observação"></i>
+                        
                                     <i class="fa fa-times" style="cursor: pointer; color: red;" onclick="removerProduto(this, '${ambiente}')" title="Remover Produto"></i>
                                 </td>
                             </tr>
@@ -619,6 +634,7 @@ function preencherProdutosNosAmbientes(produtos) {
     // Atualizar o total geral
     atualizarTotalGeral();
 }
+
 // Função para criar uma nova tabela para um ambiente específico
 function criarTabelaAmbiente(ambiente) {
     // Verifica se o ambiente é válido
@@ -657,6 +673,7 @@ function criarTabelaAmbiente(ambiente) {
                     <th>Valor Unitário</th>
                     <th>Quantidade</th>
                     <th>Valor Total</th>
+                    <th>Obs</th>
                     <th>Ação</th>
                 </tr>
             </thead>
@@ -719,7 +736,7 @@ function adicionarOuIncluirProdutoGenerico() {
               <td><textarea class="form-control" rows="3" cols="30">${produto.observacao || ''}</textarea></td>
             <td>
                 <i class="fa fa-times" style="cursor: pointer; color: red;" onclick="removerProduto(this, '${ambienteSelecionado}')" title="Remover Produto"></i>
-                <i class="fa fa-question-circle" style="cursor: pointer; color: blue; margin-right: 10px;" onclick="adicionarObservacao(this)" title="Adicionar Observação"></i>
+               
             </td>
         `;
 
@@ -1117,7 +1134,9 @@ function validarDesconto() {
 
 
 //Interações com servidor 
+
 // Atualiza pedidos
+// Função para atualizar a proposta
 async function atualizarProposta() {
     // Obter o ID do pedido da URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -1138,22 +1157,27 @@ async function atualizarProposta() {
         const token = localStorage.getItem('authToken');
 
         // Coletar dados do cliente
-        const nome = document.getElementById('nome').value.trim();
-        const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
-        const endereco = document.getElementById('endereco').value.trim();
-        const numeroComplemento = document.getElementById('numeroComplemento').value.trim();
-        const telefone = document.getElementById('telefone').value.trim();
+        const nome = document.getElementById('contratante').value.trim();
+        const emailDocumentacaoBoleto = document.getElementById('email_documentacao_boleto').value.trim();
+        const contato = document.getElementById('contato').value.trim();
+        const cpf = document.getElementById('cpf').value.trim();
+        const estadoCivil = document.getElementById('estado_civil').value.trim();
+        const profissao = document.getElementById('profissao').value.trim();
+        const bairro = document.getElementById('bairro').value.trim();
+        const cidade = document.getElementById('cidade').value.trim();
+        const uf = document.getElementById('uf').value.trim();
+        const cep = document.getElementById('cep').value.trim();
 
         // Coletar informações do orçamento
-        const vendedor = document.getElementById('selectVendedor').value.trim();
-        const agenteArquiteto = document.getElementById('agenteArquiteto').value.trim();
-        const tipoEntrega = document.getElementById('tipoEntrega').value.trim();
-        const valorFrete = parseFloat(document.getElementById('valorFrete').value.trim()) || 0;
+        const valorTotalContrato = parseFloat(document.getElementById('valor_total_contrato').value.trim()) || 0;
+        const valorEntrada = parseFloat(document.getElementById('valor_entrada').value.trim()) || 0;
+        const descritivoPagamento = document.getElementById('descritivo_pagamento').value.trim();
         const tipoPagamento = document.getElementById('tipoPagamento').value.trim();
-        const desconto = parseFloat(document.getElementById('desconto').value.trim()) || 0;
-        const dataEntrega = document.getElementById('dataEntrega').value;
+        const numeroConvidados = parseInt(document.getElementById('quantidadeConvidados').value.trim()) || 0;
+        const dataEvento = document.getElementById('data_evento').value;
+        const horarioEvento = document.getElementById('horario_evento').value;
 
-        // Obter todos os produtos e ambientes
+        // Coletar todos os produtos e ambientes
         const produtos = [];
         document.querySelectorAll("#tabelasAmbientes .ambiente-container").forEach(container => {
             const ambiente = container.querySelector("h4").innerText.trim();
@@ -1162,16 +1186,20 @@ async function atualizarProposta() {
                 const codigoProduto = row.querySelector("td:nth-child(4)")?.innerText.trim() || '';
                 const codigoInterno = row.querySelector("td:nth-child(5)")?.innerText.trim() || '';
                 const valorUnitario = row.querySelector(".valorUnitario")?.innerText.replace(/[R$]/g, '').replace(/\./g, '').replace(',', '.') || 0;
-                console.log(valorUnitario);
-
                 const quantidade = parseFloat(row.querySelector(".quantidadeProduto")?.value || 0);
                 const valorTotal = parseFloat(row.querySelector(".valorTotal")?.innerText.replace(/[^\d,.-]/g, '').replace(',', '.') || 0);
+
                 let observacao = '';
 
-                // Verificar observação
-                const nextRow = row.nextElementSibling;
-                if (nextRow && nextRow.classList.contains('observacao-row')) {
-                    observacao = nextRow.querySelector('textarea')?.value.trim() || '';
+                // Verificar observação em cada linha
+                const observacaoEspecifica = row.querySelector('textarea[placeholder="Adicione sua observação aqui"]')?.value.trim();
+                const observacaoGeral = row.querySelector('textarea[cols="30"]')?.value.trim();
+
+                // Se o campo específico de observação está preenchido, usá-lo
+                if (observacaoEspecifica) {
+                    observacao = observacaoEspecifica;
+                } else if (observacaoGeral) {
+                    observacao = observacaoGeral;
                 }
 
                 if (nomeProduto && !isNaN(valorUnitario) && !isNaN(quantidade) && !isNaN(valorTotal)) {
@@ -1194,30 +1222,33 @@ async function atualizarProposta() {
         const pedido = {
             cliente: {
                 nome,
-                cpfCnpj,
-                endereco,
-                numeroComplemento,
-                telefone,
+                emailDocumentacaoBoleto,
+                contato,
+                cpf,
+                estadoCivil,
+                profissao,
+                bairro,
+                cidade,
+                uf,
+                cep,
             },
             informacoesOrcamento: {
-                vendedor,
-                agenteArquiteto,
-                transportadora: tipoEntrega ,
-                tipoEntrega,
-                valorFrete,
+                valorTotalContrato,
+                valorEntrada,
+                descritivoPagamento,
                 tipoPagamento,
-                desconto,
-                dataEntrega,
+                numeroConvidados,
+                dataEvento,
+                horarioEvento,
             },
             produtos,
-            codigoClienteOmie: document.getElementById('idClienteOmie').value.trim(),
             status: 'Aberto',
         };
 
         console.log('Enviando pedido para salvar:', JSON.stringify(pedido, null, 2)); // Log detalhado para ver o pedido sendo enviado
 
         // Fazer a requisição de atualização do pedido
-        const response = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const response = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1240,6 +1271,8 @@ async function atualizarProposta() {
         alert('Erro ao se conectar ao servidor. Tente novamente mais tarde.');
     }
 }
+
+
 
 // Função para gerar e enviar a proposta para a API
 // Função de exemplo para atualização de status
@@ -1275,10 +1308,29 @@ async function gerarEEnviarProposta() {
         return;
     }
 
-    const codigoCliente = document.getElementById('idClienteOmie').value.trim();
-    const dataPrevisao = new Date().toLocaleDateString('pt-BR');
-    const numeroPedido = '93168'; // Número do pedido fixo, modificar conforme necessário
+    // Coletar os dados do cliente
+    const nome = document.getElementById('contratante').value.trim();
+    const emailDocumentacaoBoleto = document.getElementById('email_documentacao_boleto').value.trim();
+    const contato = document.getElementById('contato').value.trim();
+    const cpfCnpj = document.getElementById('cpf').value.trim();
+    const codigoDoCliente = document.getElementById('idClienteOmie').value.trim();
+    const estadoCivil = document.getElementById('estado_civil').value.trim();
+    const profissao = document.getElementById('profissao').value.trim();
+    const bairro = document.getElementById('bairro').value.trim();
+    const cidade = document.getElementById('cidade').value.trim();
+    const uf = document.getElementById('uf').value.trim();
+    const cep = document.getElementById('cep').value.trim();
 
+    // Coletar as informações do orçamento
+    const valorTotalContrato = parseFloat(document.getElementById('valor_total_contrato').value.trim()) || 0;
+    const valorEntrada = parseFloat(document.getElementById('valor_entrada').value.trim()) || 0;
+    const descritivoPagamento = document.getElementById('descritivo_pagamento').value.trim();
+    const tipoPagamento = document.getElementById('tipoPagamento').value.trim();
+    const numeroConvidados = parseInt(document.getElementById('quantidadeConvidados').value.trim()) || 0;
+    const dataEvento = document.getElementById('data_evento').value;
+    const horarioEvento = document.getElementById('horario_evento').value;
+
+    // Gerar código aleatório para cada produto
     function gerarCodigoAleatorio() {
         const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
         const numeros = Date.now().toString();
@@ -1294,7 +1346,6 @@ async function gerarEEnviarProposta() {
         const nomeProduto = row.querySelector("td:nth-child(3)").innerText.trim();
         const codigoProduto = row.querySelector("td:nth-child(5)").innerText.trim();
         const valorUnitario = parseFloat(row.querySelector("td:nth-child(6) .valorUnitario").innerText.replace(/\./g, '').replace(',', '.'));
-        const desconto = parseFloat(document.getElementById('desconto').value.trim()) || 0;
         const quantidade = parseInt(row.querySelector("td:nth-child(7) .quantidadeProduto").value);
         const valorTotal = row.querySelector("td:nth-child(8) .valorTotal").value.replace(',', '.');
         const observacao = row.querySelector("td:nth-child(9) textarea") ? row.querySelector("td:nth-child(9) textarea").value.trim() : '';
@@ -1323,23 +1374,24 @@ async function gerarEEnviarProposta() {
         }
     });
 
+    // Criar a proposta para envio
     const proposta = {
         cabecalho: {
-            codigo_cliente: codigoCliente,
+            codigo_cliente: codigoDoCliente, // Código do cliente
             codigo_pedido_integracao: gerarCodigoAleatorio(),
-            data_previsao: dataPrevisao,
-            etapa: "10",
-            numero_pedido: numeroPedido,
-            codigo_parcela: "999",
+            data_previsao: new Date().toLocaleDateString('pt-BR'),
+            etapa: "10", // Etapa do processo
+            numero_pedido: "93168", // Número do pedido
+            codigo_parcela: "999", // Código da parcela
             quantidade_itens: produtos.length
         },
         det: produtos,
         frete: {
-            modalidade: "9"
+            modalidade: "9" // Modalidade de frete
         },
         informacoes_adicionais: {
-            codigo_categoria: "1.05.98",
-            codigo_conta_corrente: 3498195819,
+            codigo_categoria: "1.01.03",
+            codigo_conta_corrente: 4171591424,
             consumidor_final: "S",
             enviar_email: "N"
         },
@@ -1349,16 +1401,19 @@ async function gerarEEnviarProposta() {
                     data_vencimento: "04/10/2024",
                     numero_parcela: 1,
                     percentual: 100,
-                    valor: 100
+                    valor: valorEntrada // Valor da entrada
                 }
             ]
         }
     };
 
     try {
+        // Exibe os dados antes de enviar
         console.log(proposta);
-        alert("Pedido sendo registrado na Omie, aguarde alguns segundos!");
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/omie/incluir-pedido', {
+
+        // Enviar a proposta para o servidor
+        alert("Pedido sendo registrado, aguarde alguns segundos!");
+        const response = await fetch('http://localhost:3000/omie/incluir-pedido', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1371,18 +1426,18 @@ async function gerarEEnviarProposta() {
         }
 
         const responseData = await response.json();
-        alert('Pedido enviado para o financeiro com sucesso!');
+        alert('Pedido enviado com sucesso!');
 
-        // Exibir feedback de carregamento enquanto a proposta é atualizada
+        // Chama a função para atualizar a proposta
         alert('Atualizando a proposta. Por favor, aguarde...');
         await atualizarProposta(); // Aguarda a conclusão da atualização
 
-        // Chamar a função de atualização de status e aguardar a conclusão
+        // Chama a função para atualizar o status para "Efetivado"
         await atualizarStatusParaEfetivado();
         alert('Status atualizado para Efetivado com sucesso!');
     } catch (error) {
         console.error('Erro ao enviar a proposta:', error);
-        alert('Ocorreu um erro ao enviar o pedido, o cliente não é válido!');
+        alert('Ocorreu um erro ao enviar a proposta. Por favor, tente novamente.');
     }
 }
 
@@ -1401,14 +1456,10 @@ async function buscarPedidoPorId() {
 
     // Obter o token do localStorage
     const token = localStorage.getItem('authToken');
-    if (!token) {
-        console.error("Token de autenticação não encontrado.");
-        alert("Você precisa estar autenticado para acessar esta página.");
-        return;
-    }
+   
 
     try {
-        const response = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const response = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1434,26 +1485,33 @@ async function buscarPedidoPorId() {
 // Função para preencher os dados do pedido no formulário
 function preencherFormularioComDadosPedido(pedido) {
     // Preenchendo os dados do cliente
-   
-    document.getElementById('nome').value = pedido.cliente.nome;
-    document.getElementById('idClienteOmie').value = pedido.codigoClienteOmie;
-    document.getElementById('cpfCnpj').value = pedido.cliente.cpfCnpj;
-    document.getElementById('endereco').value = pedido.cliente.endereco;
-    document.getElementById('numeroComplemento').value = pedido.cliente.numeroComplemento || '';
-    document.getElementById('telefone').value = pedido.cliente.telefone;
+    document.getElementById('contratante').value = pedido.cliente.nome || '';
+    document.getElementById('email_documentacao_boleto').value = pedido.cliente.emailDocumentacaoBoleto || '';
+    document.getElementById('contato').value = pedido.cliente.contato || '';
+    document.getElementById('cpf').value = pedido.cliente.cpf || '';
+    document.getElementById('estado_civil').value = pedido.cliente.estadoCivil || '';
+    document.getElementById('profissao').value = pedido.cliente.profissao || '';
+    document.getElementById('bairro').value = pedido.cliente.bairro || '';
+    document.getElementById('cidade').value = pedido.cliente.cidade || '';
+    document.getElementById('uf').value = pedido.cliente.uf || '';
+    document.getElementById('cep').value = pedido.cliente.cep || '';
 
     // Preenchendo as informações do orçamento
-    document.getElementById('selectVendedor').value = pedido.informacoesOrcamento.vendedor || '';
-    document.getElementById('agenteArquiteto').value = pedido.informacoesOrcamento.agenteArquiteto || '';
-    document.getElementById('dataEntrega').value = pedido.informacoesOrcamento.dataEntrega ? pedido.informacoesOrcamento.dataEntrega.slice(0, 10) : '';
-    document.getElementById('tipoEntrega').value = pedido.informacoesOrcamento.transportadora || "" ;
-    document.getElementById('valorFrete').value = pedido.informacoesOrcamento.valorFrete || 0;
-    document.getElementById('tipoPagamento').value = pedido.informacoesOrcamento.tipoPagamento || '';
+    document.getElementById('data_evento').value = pedido.informacoesOrcamento.dataEvento ? pedido.informacoesOrcamento.dataEvento.slice(0, 10) : '';  // Ajustando a data
+    document.getElementById('quantidadeConvidados').value = pedido.informacoesOrcamento.numeroConvidados || '';
+    document.getElementById('horario_evento').value = pedido.informacoesOrcamento.horarioEvento || '';
+    document.getElementById('valor_total_contrato').value = pedido.informacoesOrcamento.valorTotalContrato || '';
+    document.getElementById('valor_entrada').value = pedido.informacoesOrcamento.valorEntrada || '';
+    document.getElementById('descritivo_pagamento').value = pedido.informacoesOrcamento.descritivoPagamento || '';
+    document.getElementById('tipoPagamento').value = pedido.informacoesOrcamento.tipoPagamento || 'padrão'; // Default é "padrão"
+
+    // Preenchendo o desconto
     document.getElementById('desconto').value = pedido.informacoesOrcamento.desconto || 0;
 
     // Preencher os produtos no ambiente
-    preencherProdutosNosAmbientes(pedido.produtos);
+    preencherProdutosNosAmbientes(pedido.produtos);  // Assumindo que essa função já existe para preencher os produtos nos ambientes
 }
+
 // Função para salvar cliente
 async function salvarCliente() {
     const clienteData = {
@@ -1468,7 +1526,7 @@ async function salvarCliente() {
     try {
         console.log(clienteData)
         // Fazer a requisição POST para incluir o cliente
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/clientes/incluirCliente', {
+        const response = await fetch('http://localhost:3000/clientes/incluirCliente', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1490,6 +1548,8 @@ async function salvarCliente() {
             
             // Preencher o campo nome com o valor de clienteNomeFantasia
             document.getElementById('nome').value = document.getElementById('clienteNomeFantasia').value;
+            
+            document.getElementById('contratante').value  = document.getElementById('nome').value;
             
             // Preencher o campo telefone com o valor de clienteTelefone
             document.getElementById('telefone').value = document.getElementById('clienteTelefone').value;
@@ -1519,7 +1579,7 @@ function gerarCodigoClienteIntegracao() {
 // Função para buscar clientes
 async function buscarClientes() {
     try {
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/clientes/visualizar');
+        const response = await fetch('http://localhost:3000/clientes/visualizar');
         if (!response.ok) {
             throw new Error('Erro ao buscar os clientes');
         }
@@ -1559,7 +1619,7 @@ async function buscarClientes() {
 async function atualizarClientes() {
     try {
         alert('Sua lista de clientes esta sendo atualizada');
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/clientes/atualizar', {
+        const response = await fetch('http://localhost:3000/clientes/atualizar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1582,7 +1642,7 @@ async function atualizarClientes() {
 async function atualizacaoDeProdutos() {
     try {
         alert("Atualização de produtos Iniciada!")
-        const response = await fetch('https://acropoluz-2-2e754a37c36d.herokuapp.com/produtos/atualizar', {
+        const response = await fetch('http://localhost:3000/produtos/atualizar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1627,11 +1687,7 @@ async function atualizarStatusParaEfetivado() {
     try {
         // Obter o token do localStorage
         const token = localStorage.getItem('authToken');
-        if (!token) {
-            alert('Token de autenticação não encontrado. Por favor, faça login novamente.');
-            return;
-        }
-
+       
         // Configurações de headers com o token
         const headers = {
             'Authorization': `Bearer ${token}`,
@@ -1639,7 +1695,7 @@ async function atualizarStatusParaEfetivado() {
         };
 
         // Fazer uma requisição GET para obter o pedido existente
-        const responseGet = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const responseGet = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'GET',
             headers: headers
         });
@@ -1655,7 +1711,7 @@ async function atualizarStatusParaEfetivado() {
         pedido.status = 'Efetivado';
 
         // Fazer a requisição de atualização do pedido
-        const responsePut = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const responsePut = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'PUT',
             headers: headers,
             body: JSON.stringify(pedido)
@@ -1704,7 +1760,7 @@ async function atualizarStatusParaPerdido() {
         }
 
         // Fazer uma requisição GET para obter o pedido existente
-        const responseGet = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const responseGet = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1723,7 +1779,7 @@ async function atualizarStatusParaPerdido() {
         pedido.status = 'Perdido';
 
         // Fazer a requisição de atualização do pedido
-        const responsePut = await fetch(`https://acropoluz-2-2e754a37c36d.herokuapp.com/pedido/${idPedido}`, {
+        const responsePut = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1919,10 +1975,10 @@ function gerarPaginaOrcamento() {
             <div class="container my-5">
                 <div class="d-flex align-items-start">
                     <div>
-                        <p class="mb-1"><strong> Acrópoluz Soluções em Iluminação</strong></p>
+                        <p class="mb-1"><strong>PRIMORE INTERMEDIACAO DE NEGOCIOS LTDA</strong></p>
                         <p class="mb-1">Endereço: Av. Portugal, 4370 - Itapoã, Belo Horizonte - MG, 31270-705</p>
                         <p class="mb-1">Telefone: (31) 3448-2500</p>
-                        <p class="mb-1">Email: contato@acropoluz.com.br</p>
+                        <p class="mb-1">Email: contato@Grupo Primore.com.br</p>
                         <p class="mb-1">CNPJ: 48.008.794/0001-66</p>
                         <p class="mb-1">Inscrição estadual: 44448850048</p>
                     </div>
@@ -2147,7 +2203,7 @@ const novaPaginaHtml = `
                     <p class="mb-1"><strong>Acrópoluz Soluções em Iluminação</strong></p>
                     <p class="mb-1">Endereço: Av. Portugal, 4370 - Itapoã, Belo Horizonte - MG, 31270-705</p>
                     <p class="mb-1">Telefone: (31) 3448-2500</p>
-                    <p class="mb-1">Email: contato@acropoluz.com.br</p>
+                    <p class="mb-1">Email: contato@Grupo Primore.com.br</p>
                     <p class="mb-1">Inscrição estadual: 44448850048</p>
                 </div>
             </div>
