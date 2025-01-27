@@ -260,7 +260,7 @@ async function salvarCliente(nomeFantasia, razaoSocial, email, codigoIntegracao)
 
     try {
         // Fazer a requisição POST para incluir o cliente
-        const response = await fetch('http://localhost:3000/clientes/incluirCliente', {
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/clientes/incluirCliente', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -319,7 +319,7 @@ async function filtrarProdutos() {
     const termosPesquisa = pesquisa.split('/').map(termo => termo.trim());
 
     try {
-        const response = await fetch('http://localhost:3000/produtos/visualizar');
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/produtos/visualizar');
         if (!response.ok) {
             throw new Error('Erro ao buscar os produtos');
         }
@@ -371,7 +371,7 @@ async function pesquisarAmbiente() {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/ambientes');
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/ambientes');
         if (!response.ok) {
             throw new Error('Erro ao buscar os ambientes');
         }
@@ -440,7 +440,7 @@ async function cadastrarAmbiente(nomeAmbiente) {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/ambientes', {
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/ambientes', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1248,7 +1248,7 @@ async function atualizarProposta() {
         console.log('Enviando pedido para salvar:', JSON.stringify(pedido, null, 2)); // Log detalhado para ver o pedido sendo enviado
 
         // Fazer a requisição de atualização do pedido
-        const response = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
+        const response = await fetch(`https://teste00-9225dbefee41.herokuapp.com/pedido/${idPedido}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1413,7 +1413,7 @@ async function gerarEEnviarProposta() {
 
         // Enviar a proposta para o servidor
         alert("Pedido sendo registrado, aguarde alguns segundos!");
-        const response = await fetch('http://localhost:3000/omie/incluir-pedido', {
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/omie/incluir-pedido', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1459,7 +1459,7 @@ async function buscarPedidoPorId() {
    
 
     try {
-        const response = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
+        const response = await fetch(`https://teste00-9225dbefee41.herokuapp.com/pedido/${idPedido}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1526,7 +1526,7 @@ async function salvarCliente() {
     try {
         console.log(clienteData)
         // Fazer a requisição POST para incluir o cliente
-        const response = await fetch('http://localhost:3000/clientes/incluirCliente', {
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/clientes/incluirCliente', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1579,7 +1579,7 @@ function gerarCodigoClienteIntegracao() {
 // Função para buscar clientes
 async function buscarClientes() {
     try {
-        const response = await fetch('http://localhost:3000/clientes/visualizar');
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/clientes/visualizar');
         if (!response.ok) {
             throw new Error('Erro ao buscar os clientes');
         }
@@ -1619,7 +1619,7 @@ async function buscarClientes() {
 async function atualizarClientes() {
     try {
         alert('Sua lista de clientes esta sendo atualizada');
-        const response = await fetch('http://localhost:3000/clientes/atualizar', {
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/clientes/atualizar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1642,7 +1642,7 @@ async function atualizarClientes() {
 async function atualizacaoDeProdutos() {
     try {
         alert("Atualização de produtos Iniciada!")
-        const response = await fetch('http://localhost:3000/produtos/atualizar', {
+        const response = await fetch('https://teste00-9225dbefee41.herokuapp.com/produtos/atualizar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1695,7 +1695,7 @@ async function atualizarStatusParaEfetivado() {
         };
 
         // Fazer uma requisição GET para obter o pedido existente
-        const responseGet = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
+        const responseGet = await fetch(`https://teste00-9225dbefee41.herokuapp.com/pedido/${idPedido}`, {
             method: 'GET',
             headers: headers
         });
@@ -1711,7 +1711,7 @@ async function atualizarStatusParaEfetivado() {
         pedido.status = 'Efetivado';
 
         // Fazer a requisição de atualização do pedido
-        const responsePut = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
+        const responsePut = await fetch(`https://teste00-9225dbefee41.herokuapp.com/pedido/${idPedido}`, {
             method: 'PUT',
             headers: headers,
             body: JSON.stringify(pedido)
@@ -1760,7 +1760,7 @@ async function atualizarStatusParaPerdido() {
         }
 
         // Fazer uma requisição GET para obter o pedido existente
-        const responseGet = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
+        const responseGet = await fetch(`https://teste00-9225dbefee41.herokuapp.com/pedido/${idPedido}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1779,7 +1779,7 @@ async function atualizarStatusParaPerdido() {
         pedido.status = 'Perdido';
 
         // Fazer a requisição de atualização do pedido
-        const responsePut = await fetch(`http://localhost:3000/pedido/${idPedido}`, {
+        const responsePut = await fetch(`https://teste00-9225dbefee41.herokuapp.com/pedido/${idPedido}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,

@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 // URL da API de pedidos
-const apiUrl = 'http://localhost:3000/pedidos/';
+const apiUrl = 'https://teste00-9225dbefee41.herokuapp.com/pedidos/';
 
 
 
